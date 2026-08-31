@@ -1,6 +1,6 @@
 {
 	"name": "ifmnb/quat",
-	"version": "2609.01.0",
+	"version": "2609.1.0",
 	"main": "Quat.luau",
 	"repository": "github:IFMNB/luau-geometry",
 	"license": "GNU General Public License v3.0",

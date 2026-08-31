@@ -1,7 +1,7 @@
 [package]
 name = "ifmnb/basis"
 description = "Basis object;"
-version = "2609.01.0"
+version = "2609.1.0"
 license = "GNU General Public License v3.0"
 authors = ["Aftersky"]
 repository = "https://github.com/IFMNB/luau-geometry"
@@ -10,4 +10,4 @@ realm = "shared"
 exclude = ["node_modules", "package.json", "**/*.ts"]
 
 [dependencies]
-Quat = "ifmnb/quat@2609.01.0"
+Quat = "ifmnb/quat@2609.1.0"
