@@ -1,0 +1,10 @@
+[package]
+name = "ifmnb/quat"
+description = "Quaternion object; A rewritten version of sleitnick/quaternion"
+version = "2609.01.0"
+license = "GNU General Public License v3.0"
+authors = ["Aftersky"]
+repository = "https://github.com/IFMNB/luau-geometry"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+exclude = ["node_modules", "package.json", "**/*.ts"]
