@@ -1,7 +1,7 @@
 {
 	"name": "ifmnb/basis",
-	"version": "2609.1.0",
-	"main": "Basis.luau",
+	"version": "2609.1.1",
+	"main": "init.luau",
 	"repository": "github:IFMNB/luau-geometry",
 	"license": "GNU General Public License v3.0",
 	"files": [
