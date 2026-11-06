@@ -89,47 +89,68 @@ const library: Library = table.freeze({
 		forward = forward and vector.normalize(forward) or vector.zero
 
 		const up = upwards and vector.normalize(upwards) or Y_AXIS
-		const v1 = forward
-		const v2 = vector.cross(up, v1)
-		const v3 = vector.cross(v1, v2)
 
-		const m00 = v2.x
-		const m01 = v2.y
-		const m02 = v2.z
-		const m10 = v3.x
-		const m11 = v3.y
-		const m12 = v3.z
-		const m20 = v1.x
-		const m21 = v1.y
-		const m22 = v1.z
+		const right = vector.cross(up, forward)
+		const corrected_up = vector.cross(forward, right)
 
-		const n8 = m00 + m11 + m22
+		const m00 = right.x
+		const m01 = right.y
+		const m02 = right.z
 
-		if n8 > 0 then
-			const n = math.sqrt(n8 + 1)
+		const m10 = corrected_up.x
+		const m11 = corrected_up.y
+		const m12 = corrected_up.z
 
-			return vector.create((m12 - m21) * n, (m20 - m02) * n, (m01 - m10) * n)
+		const m20 = forward.x
+		const m21 = forward.y
+		const m22 = forward.z
+
+		local x = 0
+		local y = 0
+		local z = 0
+		local w = 0
+
+		const trace = m00 + m11 + m22
+
+		if trace > 0 then
+			const s = math.sqrt(trace + 1) * 2
+
+			x = (m12 - m21) / s
+			y = (m20 - m02) / s
+			z = (m01 - m10) / s
+			w = 0.25 * s
+		elseif m00 > m11 and m00 > m22 then
+			const s = math.sqrt(1 + m00 - m11 - m22) * 2
+
+			x = 0.25 * s
+			y = (m01 + m10) / s
+			z = (m02 + m20) / s
+			w = (m12 - m21) / s
+		elseif m11 > m22 then
+			const s = math.sqrt(1 + m11 - m00 - m22) * 2
+
+			x = (m01 + m10) / s
+			y = 0.25 * s
+			z = (m12 + m21) / s
+			w = (m20 - m02) / s
+		else
+			const s = math.sqrt(1 + m22 - m00 - m11) * 2
+
+			x = (m02 + m20) / s
+			y = (m12 + m21) / s
+			z = 0.25 * s
+			w = (m01 - m10) / s
 		end
 
-		if m00 >= m11 and m00 >= m22 then
-			const n7 = math.sqrt(((1 + m00) - m11) - m22)
-			const n4 = 0.5 / n7
-
-			return vector.create(0.5 * n7, (m01 + m10) * n4, (m02 + m20) * n4)
+		if w < 0 then
+			x = -x
+			y = -y
+			z = -z
 		end
 
-		if m11 > m22 then
-			const n6 = math.sqrt(((1 + m11) - m00) - m22)
-			const n3 = 0.5 / n6
-
-			return vector.create((m10 + m01) * n3, 0.5 * n6, (m21 + m12) * n3)
-		end
-
-		const n5 = math.sqrt(((1 + m22) - m00) - m11)
-		const n2 = 0.5 / n5
-
-		return vector.create((m20 + m02) * n2, (m21 + m12) * n2, 0.5 * n5)
+		return vector.create(x, y, z)
 	end,
+
 
 	scalar = function(this: Quaternion): number
 		return math.sqrt(math.max(0, 1 - ((this.x * this.x) + (this.y * this.y) + (this.z * this.z))))
@@ -143,11 +164,26 @@ const library: Library = table.freeze({
 	end,
 
 	slerp = function(this: Quaternion, towards: Quaternion, alpha: number): Quaternion
-		const this_w = math.sqrt(math.max(0, 1 - ((this.x * this.x) + (this.y * this.y) + (this.z * this.z))))
-		const towards_w =
-			math.sqrt(math.max(0, 1 - ((towards.x * towards.x) + (towards.y * towards.y) + (towards.z * towards.z))))
+		const this_w =
+			math.sqrt(math.max(0, 1 - (
+				this.x * this.x +
+				this.y * this.y +
+				this.z * this.z
+			)))
 
-		local cosOmega = this.x * towards.x + this.y * towards.y + this.z * towards.z + this_w * towards_w
+		const towards_w =
+			math.sqrt(math.max(0, 1 - (
+				towards.x * towards.x +
+				towards.y * towards.y +
+				towards.z * towards.z
+			)))
+
+		local cosOmega =
+			this.x * towards.x +
+			this.y * towards.y +
+			this.z * towards.z +
+			this_w * towards_w
+
 		local flip = false
 
 		if cosOmega < 0 then
@@ -155,7 +191,8 @@ const library: Library = table.freeze({
 			cosOmega = -cosOmega
 		end
 
-		local s1, s2 = 0, 0
+		local s1 = 0
+		local s2 = 0
 
 		if cosOmega > (1 - EPSILON) then
 			s1 = 1 - alpha
@@ -165,10 +202,26 @@ const library: Library = table.freeze({
 			const invSinOmega = 1 / math.sin(omega)
 
 			s1 = math.sin((1 - alpha) * omega) * invSinOmega
-			s2 = if flip then -math.sin(alpha * omega) * invSinOmega else math.sin(alpha * omega) * invSinOmega
+
+			s2 =
+				if flip
+				then -math.sin(alpha * omega) * invSinOmega
+				else math.sin(alpha * omega) * invSinOmega
 		end
 
-		return vector.create(s1 * this.x + s2 * towards.x, s1 * this.y + s2 * towards.y, s1 * this.z + s2 * towards.z)
+		local x = s1 * this.x + s2 * towards.x
+		local y = s1 * this.y + s2 * towards.y
+		local z = s1 * this.z + s2 * towards.z
+
+		const w = s1 * this_w + s2 * towards_w
+
+		if w < 0 then
+			x = -x
+			y = -y
+			z = -z
+		end
+
+		return vector.create(x, y, z)
 	end,
 
 	angle = function(this: Quaternion, towards: Quaternion): number
